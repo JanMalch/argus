@@ -1,27 +1,39 @@
-directory = ".argus"
+# https://github.com/JanMalch/argus
+
+directory = ".argus" # default
 
 [[server]]
 upstream = "https://jsonplaceholder.typicode.com"
-port = 3000
+port = 3000 # for localhost
 
 [server.response.overwrites]
-"^/todos/\\d+" = 403
+# Any request to "/comments/1" will immediately receive the file's content as a response.
+# The file must be inside the directory specified above.
+"/comments/1" = "any_method_1_response.json"
+# You may also precisely select the HTTP method to overwrite.
 "GET /comments/6" = "custom_get_6_response.json"
 "POST /comments/6" = "custom_post_6_response.json"
-"^/images/.+" = "img/16_9.png"
+# When the request target starts with a ^, it's intepreted as a GoLang regex.
+# Otherwise it's used as an exact match.
+"^/images/.+" = "img/16_9.png" # see the images directory, for some helpful images
+# When using an integer value, Argus will immediately respond with no body and the given status code.
+"GET ^/todos/\\d+" = 403
 
+# You can specify as many servers as you like, but you cannot add them at runtime.
 [[server]]
-upstream = "https://postman-echo.com"
-# you can specify the port explicitly, otherwise +1 to previous server
+upstream = "https://postman-echo.com" # The upstream can be changed at runtime.
+# you can specify the port explicitly, otherwise it's +1 to previous server
 
 [server.request.headers]
-"X-Test" = "Hi"
-"Cache-Control" = "None"
+# Overwite any existing headers. This allows you to quickly switch been stages without any restarts.
+"X-API-Key" = "Hi"
+# An empty string will remove the header
+"X-Drop" = ""
 
 [server.request.parameters]
-# combine request headers and query parameters for cache busting
+# Add any query parameter, e.g. for cache busting
 "__cache_buster" = "{{rng.uuid}}"
 
 [server.response.headers]
-# add response headers to ease debugging with your application
+# Add response headers to ease debugging with your application
 "X-Argus-ID" = "{{id}}"

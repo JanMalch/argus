@@ -2,9 +2,20 @@
 
 _A convenient proxy for developers._
 
+## Features
+
+- HTTP-based reverse proxy (not a general purpose network proxy)
+- Extremly easy to set up
+- TUI to navigate the request timeline
+- Skip upstream and respond directly based on file contents
+- Record latest exchange per request target (soon™)
+  
 ## Usage
 
-Install the CLI from the [latest release](https://github.com/JanMalch/argus/releases) and start it.
+Simply download the stand-alone binary from the [latest release](https://github.com/JanMalch/argus/releases) and start it. No installation required.
+Verify it works by running `argus -v` or `argus -h`.
+
+Argus behaviour is configured via a TOML configuration file.
 
 ```shell
 argus # looks for argus.toml in the current working directory
@@ -15,13 +26,15 @@ A minimal configuration must look like this:
 
 ```toml
 [[server]]
-upstream = "https://jsonplaceholder.typicode.com"
+upstream = "https://api.example.com"
+port = 3000
 ```
 
-This will open the server on a random port and log all requests.
-Any changes to the configuration file are loaded immediately without a server restart.
+Now simply change your app's upstream to `http://127.0.0.0:3000` and you are good to go!
+Argus will pass all requests to `"https://api.example.com"` and display them in your terminal.
 
-Checkout [`argus.toml`](./argus.toml) for what a full configuration might look like.
+See [`argus.toml`](./argus.toml) for what a full configuration might look like.
+Any changes besides adding or removing servers are loaded immediately without a server restart.
 
 ### Android
 
