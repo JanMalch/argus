@@ -35,6 +35,11 @@ func setConfig(path string) error {
 	if err != nil {
 		return err
 	} else {
+		if config != nil {
+			if len(config.Servers) != len(pconfig.Servers) {
+				log.Panic("Add or removing servers at runtime is not supported.")
+			}
+		}
 		config = pconfig
 		return nil
 	}
