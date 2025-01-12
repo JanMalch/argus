@@ -1,0 +1,14 @@
+# Configuration for the roar CLI
+# https://github.com/JanMalch/roar
+
+[[update]]
+file = "cmd/server/main.go"
+find = "const VERSION = "
+replace = "const VERSION = \"{{version}}\""
+
+[changelog]
+include = ["feat", "fix", "perf"]
+url_commit = "https://github.com/JanMalch/argus/commit/{{hash}}"
+url_browse_at_tag = "https://github.com/JanMalch/argus/tree/v{{version}}"
+url_compare_tags = "https://github.com/JanMalch/argus/compare/v{{previous}}...v{{version}}"
+url_commits_for_tag = "https://github.com/JanMalch/argus/commits/v{{version}}"

@@ -1,0 +1,27 @@
+directory = ".argus"
+
+[[server]]
+upstream = "https://jsonplaceholder.typicode.com"
+port = 3000
+
+[server.response.overwrites]
+"^/todos/\\d+" = 403
+"GET /comments/6" = "custom_get_6_response.json"
+"POST /comments/6" = "custom_post_6_response.json"
+"^/images/.+" = "img/16_9.png"
+
+[[server]]
+upstream = "https://postman-echo.com"
+# you can specify the port explicitly, otherwise +1 to previous server
+
+[server.request.headers]
+"X-Test" = "Hi"
+"Cache-Control" = "None"
+
+[server.request.parameters]
+# combine request headers and query parameters for cache busting
+"__cache_buster" = "{{rng.uuid}}"
+
+[server.response.headers]
+# add response headers to ease debugging with your application
+"X-Argus-ID" = "{{id}}"

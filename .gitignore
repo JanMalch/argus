@@ -1,0 +1,15 @@
+# dev
+.vscode/*
+!.vscode/launch.json
+!.vscode/*.code-snippets
+.idea/
+
+# misc
+.DS_Store
+
+# app
+/.argus
+argus
+
+# output
+/bin
