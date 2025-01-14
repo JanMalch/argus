@@ -74,3 +74,8 @@ func (f *FileView) SetFile(file, mimeType string) {
 	f.file = file
 	f.mimeType = mimeType
 }
+
+func (f *FileView) Clear() {
+	f.file = ""
+	f.mimeType = ""
+}

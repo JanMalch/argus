@@ -112,6 +112,11 @@ func NewTerminalUI(directory, sessionDir, logFile string) UI {
 }
 
 func (t *tui) setExchange() {
+	t.requestHeaders.Clear()
+	t.responseHeaders.Clear()
+	t.requestBody.Clear()
+	t.responseBody.Clear()
+
 	e := t.currentExchange()
 	if e == nil {
 		return
@@ -119,7 +124,6 @@ func (t *tui) setExchange() {
 
 	row := 0
 	longestReqHeaderNameLen := len(e.Request.Headers.LongestName()) + 4
-	t.requestHeaders.Clear()
 	for _, h := range e.Request.Headers {
 		for _, v := range h.Values {
 			t.requestHeaders.SetCellSimple(row, 0, fmt.Sprintf("%-*s", longestReqHeaderNameLen, h.Key))
@@ -135,7 +139,6 @@ func (t *tui) setExchange() {
 	if e.Response != nil {
 		row = 0
 		longestResHeaderNameLen := len(e.Response.Headers.LongestName()) + 4
-		t.responseHeaders.Clear()
 		for _, h := range e.Response.Headers {
 			for _, v := range h.Values {
 				t.responseHeaders.SetCellSimple(row, 0, fmt.Sprintf("%-*s", longestResHeaderNameLen, h.Key))
@@ -155,6 +158,10 @@ func (t *tui) setExchange() {
 const ftime = "15:04:05.000000"
 
 func (t *tui) setTable() {
+	if t.timeline.len() == 0 {
+		t.table.Clear()
+		return
+	}
 	row := 0
 	for _, id := range t.timeline.order {
 		e := t.timeline.data[id]

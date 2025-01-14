@@ -34,6 +34,14 @@ func (t *tui) consumeGlobalEvents(event *tcell.EventKey) *tcell.EventKey {
 func (t *tui) setupTableInputCapture(yankUrl func()) {
 	t.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
+		case 'c':
+			t.timeline.clear()
+			go t.app.QueueUpdateDraw(func() {
+				t.setTable()
+				t.setExchange()
+				t.setHeader()
+			})
+			return nil
 		case 'y':
 			yankUrl()
 			return nil

@@ -74,3 +74,10 @@ func (t *timeline) at(i int) *handler.Exchange {
 	id := t.order[i]
 	return t.data[id]
 }
+
+func (t *timeline) clear() {
+	t.order = make([]uint64, 0)
+	t.data = make(map[uint64]*handler.Exchange)
+	t.reqBodySizes = make(map[uint64]int64)
+	t.resBodySizes = make(map[uint64]int64)
+}
