@@ -6,10 +6,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-type state struct {
-	isInYankMode bool
-}
-
 func (t *tui) consumeGlobalEvents(event *tcell.EventKey) *tcell.EventKey {
 	switch event.Rune() {
 	case 'q':
@@ -17,36 +13,29 @@ func (t *tui) consumeGlobalEvents(event *tcell.EventKey) *tcell.EventKey {
 		return nil
 	case 'I':
 		t.app.SetFocus(t.requestHeaders)
+		t.footer.SetText("(y)ank headers, (q)uit, (Esc)ape to timeline")
 		return nil
 	case 'i':
 		t.app.SetFocus(t.requestBody)
+		t.footer.SetText("(y)ank body, (q)uit, (Esc)ape to timeline")
 		return nil
 	case 'O':
 		t.app.SetFocus(t.responseHeaders)
+		t.footer.SetText("(y)ank headers, (q)uit, (Esc)ape to timeline")
 		return nil
 	case 'o':
 		t.app.SetFocus(t.responseBody)
+		t.footer.SetText("(y)ank body, (q)uit, (Esc)ape to timeline")
 		return nil
 	}
 	return event
 }
 
-func (t *tui) setupTableInputCapture(s *state, yankUrl func()) {
+func (t *tui) setupTableInputCapture(yankUrl func()) {
 	t.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEscape {
-			s.isInYankMode = false
-			return nil
-		}
 		switch event.Rune() {
 		case 'y':
-			if !s.isInYankMode {
-				s.isInYankMode = true
-				return nil
-			}
-			fallthrough
-		case 'Y':
 			yankUrl()
-			s.isInYankMode = false
 			return nil
 		}
 		return t.consumeGlobalEvents(event)
@@ -54,7 +43,6 @@ func (t *tui) setupTableInputCapture(s *state, yankUrl func()) {
 }
 
 func (t *tui) setupHeadBodyInputCaptures(
-	s *state,
 	headers *tview.Table,
 	body *FileView,
 	yankHeaders func(),
@@ -62,20 +50,12 @@ func (t *tui) setupHeadBodyInputCaptures(
 ) {
 	headers.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			s.isInYankMode = false
 			t.app.SetFocus(t.table)
 			return nil
 		}
 		switch event.Rune() {
 		case 'y':
-			if !s.isInYankMode {
-				s.isInYankMode = true
-				return nil
-			}
-			fallthrough
-		case 'Y':
 			yankHeaders()
-			s.isInYankMode = false
 			t.app.SetFocus(t.table)
 			return nil
 		}
@@ -83,20 +63,12 @@ func (t *tui) setupHeadBodyInputCaptures(
 	})
 	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
-			s.isInYankMode = false
 			t.app.SetFocus(t.table)
 			return nil
 		}
 		switch event.Rune() {
 		case 'y':
-			if !s.isInYankMode {
-				s.isInYankMode = true
-				return nil
-			}
-			fallthrough
-		case 'Y':
 			yankBody()
-			s.isInYankMode = false
 			t.app.SetFocus(t.table)
 			return nil
 		}
@@ -105,13 +77,12 @@ func (t *tui) setupHeadBodyInputCaptures(
 }
 
 func (t *tui) setupInputCaptures() {
-	s := state{isInYankMode: false}
-	t.setupTableInputCapture(&s, func() {
+	t.setupTableInputCapture(func() {
 		if e := t.currentExchange(); e != nil {
 			clipboard.WriteAll(e.Request.Url)
 		}
 	})
-	t.setupHeadBodyInputCaptures(&s, t.requestHeaders, t.requestBody, func() {
+	t.setupHeadBodyInputCaptures(t.requestHeaders, t.requestBody, func() {
 		if e := t.currentExchange(); e != nil {
 			clipboard.WriteAll(e.Request.Headers.String())
 		}
@@ -123,7 +94,7 @@ func (t *tui) setupInputCaptures() {
 			}
 		}
 	})
-	t.setupHeadBodyInputCaptures(&s, t.responseHeaders, t.responseBody, func() {
+	t.setupHeadBodyInputCaptures(t.responseHeaders, t.responseBody, func() {
 		if e := t.currentExchange(); e != nil {
 			clipboard.WriteAll(e.Response.Headers.String())
 		}
