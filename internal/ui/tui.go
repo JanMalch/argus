@@ -62,7 +62,7 @@ func NewTerminalUI(directory, sessionDir, logFile string) UI {
 	tui.setHeader()
 
 	requestHeaders := tview.NewTable()
-	requestHeaders.SetTitle(" (I)ncoming head ")
+	requestHeaders.SetTitle(" (I)ncoming headers ")
 	requestHeaders.SetBorder(true)
 	tui.requestHeaders = requestHeaders
 
@@ -72,7 +72,7 @@ func NewTerminalUI(directory, sessionDir, logFile string) UI {
 	tui.requestBody = requestBody
 
 	responseHeaders := tview.NewTable()
-	responseHeaders.SetTitle(" (O)utgoing head ")
+	responseHeaders.SetTitle(" (O)utgoing headers ")
 	responseHeaders.SetBorder(true)
 	tui.responseHeaders = responseHeaders
 
