@@ -91,7 +91,7 @@ func NewTerminalUI(directory, sessionDir, logFile string) UI {
 	table.Box.SetBorder(true)
 	tui.table = table
 
-	footer := tview.NewTextView().SetLabel("Commands: ").SetText("(y)ank request URL, (q)uit")
+	footer := tview.NewTextView().SetLabel("Commands: ").SetText(footerTextOnTimelineFocus)
 	tui.footer = footer
 
 	tui.setupInputCaptures()

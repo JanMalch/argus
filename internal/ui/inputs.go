@@ -13,19 +13,19 @@ func (t *tui) consumeGlobalEvents(event *tcell.EventKey) *tcell.EventKey {
 		return nil
 	case 'I':
 		t.app.SetFocus(t.requestHeaders)
-		t.footer.SetText("(y)ank headers, (q)uit, (Esc)ape to timeline")
+		t.footer.SetText(footerTextOnHeadersFocus)
 		return nil
 	case 'i':
 		t.app.SetFocus(t.requestBody)
-		t.footer.SetText("(y)ank body, (q)uit, (Esc)ape to timeline")
+		t.footer.SetText(footerTextOnBodyFocus)
 		return nil
 	case 'O':
 		t.app.SetFocus(t.responseHeaders)
-		t.footer.SetText("(y)ank headers, (q)uit, (Esc)ape to timeline")
+		t.footer.SetText(footerTextOnHeadersFocus)
 		return nil
 	case 'o':
 		t.app.SetFocus(t.responseBody)
-		t.footer.SetText("(y)ank body, (q)uit, (Esc)ape to timeline")
+		t.footer.SetText(footerTextOnBodyFocus)
 		return nil
 	}
 	return event
@@ -51,12 +51,14 @@ func (t *tui) setupHeadBodyInputCaptures(
 	headers.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			t.app.SetFocus(t.table)
+			t.footer.SetText(footerTextOnTimelineFocus)
 			return nil
 		}
 		switch event.Rune() {
 		case 'y':
 			yankHeaders()
 			t.app.SetFocus(t.table)
+			t.footer.SetText(footerTextOnTimelineFocus)
 			return nil
 		}
 		return t.consumeGlobalEvents(event)
@@ -64,12 +66,14 @@ func (t *tui) setupHeadBodyInputCaptures(
 	body.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEscape {
 			t.app.SetFocus(t.table)
+			t.footer.SetText(footerTextOnTimelineFocus)
 			return nil
 		}
 		switch event.Rune() {
 		case 'y':
 			yankBody()
 			t.app.SetFocus(t.table)
+			t.footer.SetText(footerTextOnTimelineFocus)
 			return nil
 		}
 		return t.consumeGlobalEvents(event)
