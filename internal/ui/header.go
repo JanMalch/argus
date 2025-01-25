@@ -10,5 +10,5 @@ func (t *tui) setHeader() {
 	runtime.ReadMemStats(&memStats)
 	mbUsage := float64(memStats.Alloc/1024) / 1024
 
-	t.header.SetText(fmt.Sprintf("ARGUS │ exchanges: %d │ memory: %.2f MB", t.timeline.len(), mbUsage))
+	t.header.SetText(fmt.Sprintf("ARGUS │ exchanges: %d │ memory: %.2f MB", t.timeline.Len(), mbUsage))
 }

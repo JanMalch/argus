@@ -35,7 +35,7 @@ func (t *tui) setupTableInputCapture(yankUrl func()) {
 	t.table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case 'c':
-			t.timeline.clear()
+			t.timeline.Clear()
 			go t.app.QueueUpdateDraw(func() {
 				t.setTable()
 				t.setExchange()

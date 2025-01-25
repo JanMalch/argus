@@ -12,6 +12,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/janmalch/argus/internal/handler"
+	"github.com/janmalch/argus/internal/timeline"
 	"github.com/rivo/tview"
 )
 
@@ -27,7 +28,7 @@ type tui struct {
 	sessionDir      string
 	directory       string
 	logFile         string
-	timeline        *timeline
+	timeline        *timeline.Timeline
 	app             *tview.Application
 	header          *tview.TextView
 	table           *tview.Table
@@ -51,7 +52,7 @@ func NewTerminalUI(directory, sessionDir, logFile string) UI {
 		directory:  directory,
 		sessionDir: sessionDir,
 		logFile:    logFile,
-		timeline:   newTimeline(),
+		timeline:   timeline.NewTimeline(),
 	}
 
 	app := tview.NewApplication()
@@ -158,13 +159,13 @@ func (t *tui) setExchange() {
 const ftime = "15:04:05.000000"
 
 func (t *tui) setTable() {
-	if t.timeline.len() == 0 {
+	if t.timeline.Len() == 0 {
 		t.table.Clear()
 		return
 	}
 	row := 0
-	for _, id := range t.timeline.order {
-		e := t.timeline.data[id]
+	for _, e := range t.timeline.Data() {
+		id := e.Id
 		t.table.SetCell(row, 0, tview.NewTableCell(fmt.Sprintf(" %d [%s]", id, e.Request.Timestamp.Format(ftime))).
 			SetAlign(tview.AlignRight).
 			SetTextColor(tcell.ColorGray),
@@ -237,16 +238,16 @@ func (t *tui) onRequest(e *handler.Exchange, r *http.Request) (string, error) {
 		}
 		fs, err := wf.Stat()
 		if err != nil {
-			t.timeline.setReqBodySize(e.Id, -1)
+			t.timeline.SetReqBodySize(e.Id, -1)
 		} else {
-			t.timeline.setReqBodySize(e.Id, fs.Size())
+			t.timeline.SetReqBodySize(e.Id, fs.Size())
 		}
 		wf.Close()
 	}
 
 	// Only add to timeline when body is written, so it can be displayed instantly
 	go func() {
-		t.timeline.add(e)
+		t.timeline.Add(e)
 		t.app.QueueUpdateDraw(func() {
 			t.setTable()
 			t.setExchange()
@@ -290,15 +291,15 @@ func (t *tui) OnResponse(e *handler.Exchange, body io.ReadCloser, contentType st
 		}
 		fs, err := wf.Stat()
 		if err != nil {
-			t.timeline.setResBodySize(e.Id, -1)
+			t.timeline.SetResBodySize(e.Id, -1)
 		} else {
-			t.timeline.setResBodySize(e.Id, fs.Size())
+			t.timeline.SetResBodySize(e.Id, fs.Size())
 		}
 		wf.Close()
 	}
 
 	go func() {
-		t.timeline.add(e)
+		t.timeline.Add(e)
 		t.app.QueueUpdateDraw(func() {
 			t.setTable()
 			t.setExchange()

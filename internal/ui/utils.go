@@ -13,7 +13,7 @@ import (
 
 func (t *tui) currentExchange() *handler.Exchange {
 	row, _ := t.table.GetSelection()
-	return t.timeline.at(row)
+	return t.timeline.At(row)
 }
 
 func (t *tui) currentResponseBodyString() string {
