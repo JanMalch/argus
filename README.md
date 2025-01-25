@@ -10,10 +10,26 @@ _A convenient proxy for developers._
 - Skip upstream and respond directly based on file contents
 - Record latest exchange per request target (soon™)
   
-## Usage
+## Installation
 
-Simply download the stand-alone binary from the [latest release](https://github.com/JanMalch/argus/releases) and start it. No installation required.
+Simply download the stand-alone binary for your platform from the [latest release](https://github.com/JanMalch/argus/releases/latest) and start it. No installation required.
+
+You can also use the following script. Make sure you set the correct `platform`, which must be the name of a [release asset](https://github.com/JanMalch/argus/releases/latest).
+
+```shell
+#!/bin/sh
+platform="argus-arm64-darwin"
+url=$(curl -s https://api.github.com/repos/JanMalch/argus/releases/latest | grep "browser_download_url.*${platform}" | cut -d : -f 2,3 | tr -d '"' | xargs echo -n)
+curl -sS -L -o argus "$url"
+chmod +x ./argus
+# for OS X (optional), see https://superuser.com/a/28400
+# xattr -d com.apple.quarantine ./argus
+./argus -v
+```
+
 Verify it works by running `argus -v` or `argus -h`.
+
+## Usage
 
 Argus behaviour is configured via a TOML configuration file.
 
@@ -39,7 +55,7 @@ Any changes besides adding or removing servers are loaded immediately without a 
 ### Android
 
 If you want to use `argus` for [Android development](https://developer.android.com/studio/run/emulator-networking), you have to use `http://10.0.2.2` in your Android app,
-to access your machine's `localhost` from within the emulator. Remember to add the correct port!  
+to access your machine's `localhost` from within the emulator. Remember to add the correct port!
 
 ## Development
 
