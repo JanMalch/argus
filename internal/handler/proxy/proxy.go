@@ -90,6 +90,10 @@ func PrepareUrl(
 	up.Host = upstream.Host
 	up.Scheme = upstream.Scheme
 	q := up.Query()
+	// overwrite existing ones, by first removing them all
+	for k := range query {
+		q.Del(k)
+	}
 	for k, v := range query {
 		q.Add(k, fillPlaceholders(v, id))
 	}
