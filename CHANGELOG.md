@@ -1,3 +1,13 @@
+## [0.2.1](https://github.com/JanMalch/argus/tree/v0.2.1) - January 25, 2025
+
+**Full Changelog:** [`v0.2.0...v0.2.1`](https://github.com/JanMalch/argus/compare/v0.2.0...v0.2.1)
+
+| type | description | commit |
+|---|---|---|
+| fix | parameters from config should overwrite existing ones | [`f0d7c58b`](https://github.com/JanMalch/argus/commit/f0d7c58b3ee0f67881914b056f0c07ce79472c1b) |
+
+
+
 ## [0.2.0](https://github.com/JanMalch/argus/tree/v0.2.0) - January 14, 2025
 
 **Full Changelog:** [`v0.1.1...v0.2.0`](https://github.com/JanMalch/argus/compare/v0.1.1...v0.2.0)
