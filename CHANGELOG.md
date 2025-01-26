@@ -1,3 +1,13 @@
+## [0.3.0](https://github.com/JanMalch/argus/tree/v0.3.0) - January 26, 2025
+
+**Full Changelog:** [`v0.2.1...v0.3.0`](https://github.com/JanMalch/argus/compare/v0.2.1...v0.3.0)
+
+| type | description | commit |
+|---|---|---|
+| feat | look for configuration file in ARGUS_HOME | [`9132ea78`](https://github.com/JanMalch/argus/commit/9132ea78e1a6192806425204ce6d90cb3f613f3d) |
+
+
+
 ## [0.2.1](https://github.com/JanMalch/argus/tree/v0.2.1) - January 25, 2025
 
 **Full Changelog:** [`v0.2.0...v0.2.1`](https://github.com/JanMalch/argus/compare/v0.2.0...v0.2.1)

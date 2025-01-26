@@ -64,7 +64,7 @@ func run(args []string) error {
 	return errors.Join(errs...)
 }
 
-const VERSION = "0.2.1"
+const VERSION = "0.3.0"
 
 const helpText = `
 Usage: argus [<config>]
