@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -46,6 +47,17 @@ func setConfig(path string) error {
 }
 
 func Watch(path string) (*fsnotify.Watcher, error) {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		argusHome := os.Getenv("ARGUS_HOME")
+		if argusHome == "" {
+			return nil, err
+		}
+		if _, err = os.Stat(filepath.Join(argusHome, path)); errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		} else {
+			path = filepath.Join(argusHome, path)
+		}
+	}
 	if err := setConfig(path); err != nil {
 		return nil, err
 	}
