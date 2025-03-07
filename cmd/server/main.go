@@ -32,7 +32,8 @@ func run(args []string) error {
 
 	conf := config.GetConfig()
 
-	tui := ui.NewTerminalUI(conf.Directory, sessionDir, filepath.Join(conf.Directory, "log.txt"))
+	resolvedDir := filepath.Join(filepath.Dir(configFile), conf.Directory)
+	tui := ui.NewTerminalUI(resolvedDir, sessionDir, filepath.Join(resolvedDir, "log.txt"))
 
 	listeners := make([]net.Listener, 0)
 	for i, server := range conf.Servers {
