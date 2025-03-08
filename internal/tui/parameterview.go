@@ -3,7 +3,6 @@ package tui
 import (
 	"net/url"
 
-	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/janmalch/argus/pkg/fmthttp"
 	"github.com/rivo/tview"
@@ -72,11 +71,7 @@ func (v *ParameterView) InputHandler() func(event *tcell.EventKey, setFocus func
 				v.decode++
 				v.update()
 			case 'y':
-				sx, sy := v.Table.GetSelection()
-				sc := v.GetCell(sx, sy)
-				if sc != nil {
-					clipboard.WriteAll(sc.Text)
-				}
+				yankSelectedCellText(v.Table)
 			default:
 				if handler := v.Table.InputHandler(); handler != nil {
 					handler(event, setFocus)
