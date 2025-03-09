@@ -31,13 +31,21 @@ func (v *FileView) onError(err error) {
 	v.CodeView.SetText(err.Error(), "")
 }
 
-func (v *FileView) SetFile(filename string) {
+func (v *FileView) SetFile(filename string) *FileView {
+	if filename == "" {
+		v.Image = nil
+		if v.CodeView == nil {
+			v.CodeView = NewCodeView()
+		}
+		v.CodeView.SetText("", "")
+		return v
+	}
 	mimeType := mime.TypeByExtension(filepath.Ext(filename))
 	if mimeType == "image/jpeg" || mimeType == "image/jpg" || mimeType == "image/png" {
 		file, err := os.Open(filename)
 		if err != nil {
 			v.onError(err)
-			return
+			return v
 		}
 		defer file.Close()
 		v.CodeView = nil
@@ -46,14 +54,14 @@ func (v *FileView) SetFile(filename string) {
 			graphics, err := png.Decode(file)
 			if err != nil {
 				v.onError(err)
-				return
+				return v
 			}
 			v.Image.SetImage(graphics)
 		} else {
 			photo, err := jpeg.Decode(file)
 			if err != nil {
 				v.onError(err)
-				return
+				return v
 			}
 			v.Image.SetImage(photo)
 		}
@@ -62,13 +70,14 @@ func (v *FileView) SetFile(filename string) {
 		content, err := os.ReadFile(filename)
 		if err != nil {
 			v.onError(err)
-			return
+			return v
 		}
 		if v.CodeView == nil {
 			v.CodeView = NewCodeView()
 		}
 		v.CodeView.SetText(string(content), mimeType)
 	}
+	return v
 }
 
 func (v *FileView) Focus(delegate func(p tview.Primitive)) {

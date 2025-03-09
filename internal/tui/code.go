@@ -25,7 +25,7 @@ func NewCodeView() *CodeView {
 		TextView: tview.NewTextView().SetDynamicColors(true),
 	}
 }
-func (v *CodeView) SetText(text, contentType string) {
+func (v *CodeView) SetText(text, contentType string) *CodeView {
 	v.TextView.ScrollToBeginning()
 	content := text
 	extension := ""
@@ -41,10 +41,11 @@ func (v *CodeView) SetText(text, contentType string) {
 	err := quick.Highlight(&sb, content, extension, "terminal256", "dracula")
 	if err != nil {
 		v.TextView.SetText(content)
-		return
+		return v
 	}
 	writer := tview.ANSIWriter(v.TextView)
 	writer.Write([]byte(applyLineNumbers(sb.String())))
+	return v
 }
 
 func (v *CodeView) Draw(screen tcell.Screen) {

@@ -102,7 +102,7 @@ func stringifyJwt(tokenString string) string {
 	return sb.String()
 }
 
-func (v *HeaderView) SetHeaders(h fmthttp.Headers) {
+func (v *HeaderView) SetHeaders(h fmthttp.Headers) *HeaderView {
 	v.Table.Clear()
 	v.Table.SetCell(0, 0, tview.NewTableCell("Key").SetSelectable(false).SetStyle(headStyle))
 	v.Table.SetCell(0, 1, tview.NewTableCell("Value").SetSelectable(false).SetStyle(headStyle))
@@ -118,6 +118,7 @@ func (v *HeaderView) SetHeaders(h fmthttp.Headers) {
 			row++
 		}
 	}
+	return v
 }
 
 func (v *HeaderView) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {

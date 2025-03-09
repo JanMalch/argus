@@ -55,9 +55,10 @@ func (v *ParameterView) update() {
 	}
 }
 
-func (v *ParameterView) SetParameters(p fmthttp.Parameters) {
+func (v *ParameterView) SetParameters(p fmthttp.Parameters) *ParameterView {
 	v.parameters = p
 	v.update()
+	return v
 }
 
 func (v *ParameterView) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
