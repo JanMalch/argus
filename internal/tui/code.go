@@ -29,10 +29,12 @@ func (v *CodeView) SetText(text, contentType string) *CodeView {
 	v.TextView.ScrollToBeginning()
 	content := text
 	extension := ""
-	if contentType[0] == '.' {
-		extension = contentType
-	} else {
-		extension = extensionByType(contentType, "."+contentType)
+	if contentType != "" {
+		if contentType[0] == '.' {
+			extension = contentType
+		} else {
+			extension = extensionByType(contentType, "."+contentType)
+		}
 	}
 
 	content = prettier(content, extension)
