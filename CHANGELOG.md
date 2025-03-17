@@ -1,3 +1,18 @@
+## [0.4.0](https://github.com/JanMalch/argus/tree/v0.4.0) - March 17, 2025
+
+**Full Changelog:** [`v0.3.0...v0.4.0`](https://github.com/JanMalch/argus/compare/v0.3.0...v0.4.0)
+
+| type | description | commit |
+|---|---|---|
+| feat | listen to UI config changes live | [`a8f2a8de`](https://github.com/JanMalch/argus/commit/a8f2a8de6304d727228347dffce18147dae34a8e) |
+| feat | migrate to new TUI app | [`0fd6b548`](https://github.com/JanMalch/argus/commit/0fd6b5480eec15b586dfdcf6dd79bec18e0e6da9) |
+| fix | clear old text before setting new code | [`1509293c`](https://github.com/JanMalch/argus/commit/1509293ce886ff47e25c6eb9e563a3530f73be2c) |
+| fix | resolve directory config relative to config file | [`ed43c8ba`](https://github.com/JanMalch/argus/commit/ed43c8bad86287583ddd45cde13f10a40fb22946) |
+
+### deps
+
+
+
 ## [0.3.0](https://github.com/JanMalch/argus/tree/v0.3.0) - January 26, 2025
 
 **Full Changelog:** [`v0.2.1...v0.3.0`](https://github.com/JanMalch/argus/compare/v0.2.1...v0.3.0)
