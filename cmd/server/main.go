@@ -26,6 +26,9 @@ func run(args []string) error {
 	conf := config.GetConfig()
 	directory := filepath.Join(filepath.Dir(configFile), conf.Directory)
 	tuiApp := tui.NewApp(directory, conf.UI)
+	config.SetListener(func(c config.Config) {
+		tuiApp.SetUI(c.UI)
+	})
 
 	listeners := make([]net.Listener, 0)
 	for i, server := range conf.Servers {

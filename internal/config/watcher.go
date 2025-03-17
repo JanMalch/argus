@@ -13,8 +13,9 @@ import (
 
 // TODO: this doesn't need to be a global singleton
 var (
-	config *Config = nil
-	mu     sync.Mutex
+	config   *Config = nil
+	mu       sync.Mutex
+	listener func(c Config) = nil
 )
 
 func GetConfig() Config {
@@ -44,6 +45,10 @@ func setConfig(path string) error {
 		config = pconfig
 		return nil
 	}
+}
+
+func SetListener(f func(c Config)) {
+	listener = f
 }
 
 func Watch(path string) (*fsnotify.Watcher, error) {
@@ -91,6 +96,9 @@ func Watch(path string) (*fsnotify.Watcher, error) {
 
 			case <-timer.C:
 				setConfig(path)
+				if listener != nil {
+					listener(GetConfig())
+				}
 			}
 
 		}

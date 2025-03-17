@@ -174,20 +174,15 @@ func (v *TuiApp) AddResponse(id uint64, res *fmthttp.Response, timestamp time.Ti
 	return resBodyFile, rErr
 }
 
-func (v *TuiApp) SetColumns(columns []string) {
+func (v *TuiApp) SetUI(ui config.UI) {
 	v.app.QueueUpdateDraw(func() {
-		v.timeline.SetColumns(columns)
-	})
-}
-
-func (v *TuiApp) SetLayout(vertical bool, timeline, exchange int) {
-	v.app.QueueUpdateDraw(func() {
-		if vertical {
+		v.timeline.SetColumns(ui.TimelineColumns)
+		if ui.Horizontal {
 			v.container.SetDirection(tview.FlexColumn)
 		} else {
 			v.container.SetDirection(tview.FlexRow)
 		}
-		v.container.ResizeItem(v.timeline, 0, timeline)
-		v.container.ResizeItem(v.exchange, 0, exchange)
+		v.container.ResizeItem(v.timeline, 0, ui.GrowTimeline)
+		v.container.ResizeItem(v.exchange, 0, ui.GrowExchange)
 	})
 }
