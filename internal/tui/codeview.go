@@ -45,6 +45,7 @@ func (v *CodeView) SetText(text, contentType string) *CodeView {
 		v.TextView.SetText(content)
 		return v
 	}
+	v.TextView.Clear()
 	writer := tview.ANSIWriter(v.TextView)
 	writer.Write([]byte(applyLineNumbers(sb.String())))
 	return v
