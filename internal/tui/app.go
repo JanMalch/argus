@@ -38,7 +38,8 @@ func NewApp(columns []string, layoutVertical bool, layoutTimeline, layoutExchang
 	timeline.SetSelectedEntryChangedFunc(func(entry *timelineEntry) {
 		go app.QueueUpdateDraw(func() {
 			if entry == nil {
-				panic("xD")
+				// FIXME: what do?
+				return
 			}
 			e, ok := lut[entry.id]
 			if ok {
