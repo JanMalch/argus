@@ -283,6 +283,28 @@ func (v *TimelineView) AddResponse(
 	}
 }
 
+func (v *TimelineView) SetSelectedEntryChangedFunc(handler func(entry *timelineEntry)) {
+	previous := -100
+	v.Table.SetSelectionChangedFunc(func(row, col int) {
+		idx := row - 2
+		if idx < 0 {
+			// TODO: what do?
+			return
+		}
+		if idx == previous {
+			// ignore horizontal movement
+			return
+		}
+		previous = idx
+		// FIXME: what happens when clearing?
+		if idx < 0 || idx >= len(v.data.entries) {
+			panic(fmt.Sprintf("invalid index %d for row %d and %d entries", idx, row, len(v.data.entries)))
+		}
+		id := v.data.entries[idx]
+		handler(v.data.lut[id])
+	})
+}
+
 func (v *TimelineView) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 	return v.WrapInputHandler(func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 		if v.Table.HasFocus() {
