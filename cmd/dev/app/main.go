@@ -5,20 +5,27 @@ import (
 	"os"
 	"time"
 
+	"github.com/janmalch/argus/internal/config"
 	"github.com/janmalch/argus/internal/tui"
+	"github.com/janmalch/argus/pkg/fmthttp"
 )
 
 func main() {
-	app := tui.NewApp([]string{"ID",
-		"start",
-		"method",
-		"host",
-		"request target",
-		"end",
-		"duration",
-		"status_code",
-		"status_Text",
-	}, true, 2, 3)
+	app := tui.NewApp(".argus", config.UI{
+		TimelineColumns: []string{"ID",
+			"start",
+			"method",
+			"host",
+			"request target",
+			"end",
+			"duration",
+			"status_code",
+			"status_Text",
+		},
+		Horizontal:   false,
+		GrowTimeline: 2,
+		GrowExchange: 3,
+	})
 	req0, _ := http.NewRequest("GET", "https://example.com/argus/0?demo=works", http.NoBody)
 	f, _ := os.Open(".assets/example.json")
 	defer f.Close()
@@ -35,9 +42,8 @@ func main() {
 	}()
 	go func() {
 		time.Sleep(1400 * time.Millisecond)
-		app.AddResponse(0, &http.Response{
-			StatusCode: 200,
-			Status:     "200 OK",
+		app.AddResponse(0, &fmthttp.Response{
+			ResponseHead: fmthttp.NewResponseHead("HTTP/1.0", 200, "200 OK", http.Header{}),
 		}, time.Now())
 	}()
 

@@ -2,6 +2,7 @@ package fmthttp
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -65,4 +66,16 @@ func (r *ResponseHead) String() string {
 		}
 	}
 	return sb.String() + "\r\n"
+}
+
+type Response struct {
+	ResponseHead
+	Body io.ReadCloser
+}
+
+func CopyResponse(r *http.Response) Response {
+	return Response{
+		ResponseHead: CopyResponseHead(r),
+		Body:         r.Body,
+	}
 }

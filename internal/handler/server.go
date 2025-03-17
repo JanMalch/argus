@@ -40,26 +40,19 @@ func handleEverything(h Hooks, getServerConfig config.ServerProvider) http.Handl
 			if overwrite.File == "" {
 				if overwrite.Status != 0 {
 					// only status defined
-					e := &Exchange{
-						Id: id,
-						Request: Request{
-							Timestamp:   start,
-							RequestHead: fmthttp.CopyRequestHead(r),
-							Url:         proxy.PrepareUrl(id, r, conf.Upstream, conf.Request.Parameters).String(),
-						},
-					}
-					err := h.OnRequestWithoutFurtherBodyUsage(e, r)
+					_, err := h.AddRequest(id, r, start)
 					if err != nil {
 						h.Log(id, err.Error())
+						w.WriteHeader(http.StatusNotImplemented)
+						return
 					}
 
 					end := time.Now()
-					e.Response = &Response{
-						Timestamp:    end,
-						ResponseHead: fmthttp.NewResponseHead(r.Proto, overwrite.Status, "", w.Header()),
-					}
 					w.WriteHeader(overwrite.Status)
-					h.OnResponse(e, http.NoBody, "")
+					h.AddResponse(id, &fmthttp.Response{
+						ResponseHead: fmthttp.NewResponseHead(r.Proto, overwrite.Status, "", w.Header()),
+						Body:         http.NoBody,
+					}, end)
 					return
 				}
 				// else: no file and no status isn't a case. fallthrough to upstream
@@ -75,50 +68,46 @@ func handleEverything(h Hooks, getServerConfig config.ServerProvider) http.Handl
 					h.Log(id, err.Error())
 					// fallthrough to upstream
 				} else {
-					e := &Exchange{
-						Id: id,
-						Request: Request{
-							Timestamp:   start,
-							RequestHead: fmthttp.CopyRequestHead(r),
-							Url:         proxy.PrepareUrl(id, r, conf.Upstream, conf.Request.Parameters).String(),
-						},
-					}
-					err := h.OnRequestWithoutFurtherBodyUsage(e, r)
+					_, err = h.AddRequest(id, r, start)
 					if err != nil {
 						h.Log(id, err.Error())
+						w.WriteHeader(http.StatusNotImplemented)
+						return
 					}
 
 					w.Header().Add("Content-Type", contentType)
 					end := time.Now()
-					e.Response = &Response{
-						Timestamp:    end,
-						ResponseHead: fmthttp.NewResponseHead(r.Proto, status, "", w.Header()),
-					}
 
 					// this will create a copy of the referenced file, but this way we have immutability
-					downbodyFile, err := h.OnResponse(e, ofr, contentType)
+					downbodyFile, err := h.AddResponse(id, &fmthttp.Response{
+						ResponseHead: fmthttp.NewResponseHead(r.Proto, status, "", w.Header()),
+						Body:         ofr,
+					}, end)
 					if err != nil {
 						h.Log(id, err.Error())
 						w.WriteHeader(http.StatusNotImplemented)
 						return
 					}
-					downbody, err := os.Open(downbodyFile)
-					if err != nil {
-						h.Log(id, err.Error())
-						w.WriteHeader(http.StatusNotImplemented)
-						return
-					}
-					w.WriteHeader(status)
-
-					_, err = io.Copy(w, downbody)
-					if err != nil {
-						// FIXME: all these error cases don't update the UI appropriately.
-						//        h.OnError(id, err) which can also do the logging?
-						h.Log(id, err.Error())
-						return
-					}
-					if err = downbody.Close(); err != nil {
-						h.Log(id, err.Error())
+					if downbodyFile != "" {
+						downbody, err := os.Open(downbodyFile)
+						if err != nil {
+							h.Log(id, err.Error())
+							w.WriteHeader(http.StatusNotImplemented)
+							return
+						}
+						w.WriteHeader(status)
+						_, err = io.Copy(w, downbody)
+						if err != nil {
+							// FIXME: all these error cases don't update the UI appropriately.
+							//        h.OnError(id, err) which can also do the logging?
+							h.Log(id, err.Error())
+							return
+						}
+						if err = downbody.Close(); err != nil {
+							h.Log(id, err.Error())
+						}
+					} else {
+						w.WriteHeader(status)
 					}
 					return
 				}
@@ -133,24 +122,24 @@ func handleEverything(h Hooks, getServerConfig config.ServerProvider) http.Handl
 			return
 		}
 
-		e := &Exchange{
-			Id: id,
-			Request: Request{
-				Timestamp:   start,
-				RequestHead: upreq.RequestHead(),
-				Url:         upreq.Url(),
-			},
-		}
-
-		reqbody, err := h.OnRequest(e, r)
+		reqbodyPath, err := h.AddRequest(id, r, start)
 		if err != nil {
 			h.Log(id, err.Error())
 			w.WriteHeader(http.StatusNotImplemented)
 			return
 		}
 
-		// reqbody will be closed by the transport layer
-		upres, err := upreq.SetBody(reqbody).Do()
+		if reqbodyPath != "" {
+			// reqbody will be closed by the transport layer
+			reqbody, err := os.Open(reqbodyPath)
+			if err != nil {
+				h.Log(id, err.Error())
+				w.WriteHeader(http.StatusNotImplemented)
+				return
+			}
+			upreq = upreq.SetBody(reqbody)
+		}
+		upres, err := upreq.Do()
 		end := time.Now()
 		if err != nil {
 			h.Log(id, err.Error())
@@ -159,21 +148,20 @@ func handleEverything(h Hooks, getServerConfig config.ServerProvider) http.Handl
 		}
 
 		downheaders := proxy.PrepareHeaders(id, &upres.Header, conf.Response.Headers)
-		e.Response = &Response{
-			Timestamp: end,
+		for dhk, dhvv := range downheaders {
+			for _, dhv := range dhvv {
+				w.Header().Add(dhk, dhv)
+			}
+		}
+		downbodyFile, err := h.AddResponse(id, &fmthttp.Response{
 			ResponseHead: fmthttp.NewResponseHead(
 				upres.Proto,
 				upres.StatusCode,
 				upres.Status,
 				downheaders,
 			),
-		}
-		for dhk, dhvv := range downheaders {
-			for _, dhv := range dhvv {
-				w.Header().Add(dhk, dhv)
-			}
-		}
-		downbodyFile, err := h.OnResponse(e, upres.Body, upres.Header.Get("Content-Type"))
+			Body: upres.Body,
+		}, end)
 		if err != nil {
 			h.Log(id, err.Error())
 			w.WriteHeader(http.StatusNotImplemented)

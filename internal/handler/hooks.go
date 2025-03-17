@@ -26,9 +26,8 @@ type Exchange struct {
 }
 
 type Hooks interface {
-	OnRequest(e *Exchange, r *http.Request) (io.ReadCloser, error)
-	OnRequestWithoutFurtherBodyUsage(e *Exchange, r *http.Request) error
-	OnResponse(e *Exchange, body io.ReadCloser, contentType string) (string, error)
+	AddRequest(id uint64, req *http.Request, timestamp time.Time) (string, error)
+	AddResponse(id uint64, res *fmthttp.Response, timestamp time.Time) (string, error)
 	ReadFile(file string) (io.ReadCloser, string, error)
 	Log(id uint64, msg string)
 }

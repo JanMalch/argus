@@ -12,18 +12,11 @@ import (
 
 	"github.com/janmalch/argus/internal/config"
 	"github.com/janmalch/argus/internal/handler"
-	"github.com/janmalch/argus/internal/ui"
+	"github.com/janmalch/argus/internal/tui"
 )
 
 func run(args []string) error {
 	configFile := consumeArgs(args)
-
-	sessionDir, err := os.MkdirTemp("", "argus-")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(sessionDir)
-
 	if watcher, err := config.Watch(configFile); err != nil {
 		return err
 	} else {
@@ -31,9 +24,8 @@ func run(args []string) error {
 	}
 
 	conf := config.GetConfig()
-
-	resolvedDir := filepath.Join(filepath.Dir(configFile), conf.Directory)
-	tui := ui.NewTerminalUI(resolvedDir, sessionDir, filepath.Join(resolvedDir, "log.txt"))
+	directory := filepath.Join(filepath.Dir(configFile), conf.Directory)
+	tuiApp := tui.NewApp(directory, conf.UI)
 
 	listeners := make([]net.Listener, 0)
 	for i, server := range conf.Servers {
@@ -42,7 +34,7 @@ func run(args []string) error {
 			return err
 		}
 		// usedPort := listener.Addr().(*net.TCPAddr).Port
-		srv := handler.NewServer(tui, func() config.Server {
+		srv := handler.NewServer(tuiApp, func() config.Server {
 			// NOTE: important to always get a fresh config
 			return config.GetConfig().Servers[i]
 		})
@@ -54,7 +46,7 @@ func run(args []string) error {
 		}()
 	}
 
-	uiErr := tui.Run()
+	uiErr := tuiApp.Run()
 	errs := make([]error, 0)
 	if uiErr != nil {
 		errs = append(errs, uiErr)

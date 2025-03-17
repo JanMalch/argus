@@ -1,6 +1,12 @@
 package tui
 
-import "mime"
+import (
+	"io"
+	"mime"
+	"net/http"
+	"os"
+	"path/filepath"
+)
 
 var (
 	extLUT = make(map[string]string)
@@ -32,4 +38,21 @@ func extensionByType(contentType, fallback string) string {
 		return fb
 	}
 	return extension
+}
+
+func contentTypeOf(file string) string {
+	contentType := mime.TypeByExtension(filepath.Ext(file))
+	if contentType == "" {
+		if f, err := os.Open(file); err == nil {
+			lr := io.LimitReader(f, 512)
+			if b, err := io.ReadAll(lr); err == nil {
+				contentType = http.DetectContentType(b)
+			}
+			f.Close()
+		}
+	}
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	return contentType
 }

@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"github.com/janmalch/argus/internal/config"
 	"github.com/janmalch/argus/pkg/fmthttp"
 	"github.com/rivo/tview"
 )
 
 type TuiApp struct {
+	directory string
 	tmpDir    string
 	app       *tview.Application
 	container *tview.Flex
@@ -30,10 +32,10 @@ type storedEntry struct {
 	resBodyFile string
 }
 
-func NewApp(columns []string, layoutVertical bool, layoutTimeline, layoutExchange int) *TuiApp {
+func NewApp(directory string, ui config.UI) *TuiApp {
 	app := tview.NewApplication()
 	lut := make(map[uint64]*storedEntry)
-	timeline := NewTimelineView(columns)
+	timeline := NewTimelineView(ui.TimelineColumns)
 	exchange := NewExchangeView()
 	timeline.SetSelectedEntryChangedFunc(func(entry *timelineEntry) {
 		go app.QueueUpdateDraw(func() {
@@ -64,23 +66,22 @@ func NewApp(columns []string, layoutVertical bool, layoutTimeline, layoutExchang
 	})
 
 	container := tview.NewFlex()
-	if layoutVertical {
-		container.SetDirection(tview.FlexRow)
-	} else {
+	if ui.Horizontal {
 		container.SetDirection(tview.FlexColumn)
+	} else {
+		container.SetDirection(tview.FlexRow)
 	}
-	container.AddItem(timeline, 0, layoutTimeline, true)
-	container.AddItem(exchange, 0, layoutExchange, false)
+	container.AddItem(timeline, 0, ui.GrowTimeline, true)
+	container.AddItem(exchange, 0, ui.GrowExchange, false)
 	app.SetRoot(container, true)
 
-	tmpDir := "temp"
-	// FIXME: tmpDir, err := os.MkdirTemp("", "argus-")
-	err := os.Mkdir(tmpDir, 0644)
+	tmpDir, err := os.MkdirTemp("", "argus-")
 	if err != nil {
 		panic(err)
 	}
 
 	return &TuiApp{
+		directory: directory,
 		tmpDir:    tmpDir,
 		app:       app,
 		container: container,
@@ -95,8 +96,23 @@ func (a *TuiApp) Run() error {
 	return a.app.Run()
 }
 
-func (v *TuiApp) AddRequest(id uint64, req *http.Request, timestamp time.Time) string {
+func (v *TuiApp) ReadFile(file string) (io.ReadCloser, string, error) {
+	f := filepath.Join(v.directory, file)
+	contentType := contentTypeOf(f)
+	r, err := os.Open(f)
+	return r, contentType, err
+}
+
+func (v *TuiApp) Log(id uint64, msg string) {
+	now := time.Now().Format(time.RFC3339Nano)
+	f, _ := os.OpenFile(filepath.Join(v.directory, "log.txt"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	defer f.Close()
+	f.WriteString(fmt.Sprintf("[%s | %d] %s\n", now, id, msg))
+}
+
+func (v *TuiApp) AddRequest(id uint64, req *http.Request, timestamp time.Time) (string, error) {
 	reqBodyFile := ""
+	var rErr error
 	if req.Body != nil && req.Body != http.NoBody {
 		defer req.Body.Close()
 		ext := extensionByType(req.Header.Get("Content-Type"), ".dat")
@@ -104,11 +120,13 @@ func (v *TuiApp) AddRequest(id uint64, req *http.Request, timestamp time.Time) s
 		f, err := os.Create(reqBodyFile)
 		if err != nil {
 			reqBodyFile = ""
+			rErr = err
 		} else {
 			defer f.Close()
 			_, err = io.Copy(f, req.Body)
 			if err != nil {
 				reqBodyFile = ""
+				rErr = err
 			}
 		}
 	}
@@ -120,42 +138,40 @@ func (v *TuiApp) AddRequest(id uint64, req *http.Request, timestamp time.Time) s
 	go v.app.QueueUpdateDraw(func() {
 		v.timeline.AddRequest(id, timestamp, req.Method, req.URL)
 	})
-	return reqBodyFile
+	return reqBodyFile, rErr
 }
 
-func (v *TuiApp) AddResponse(id uint64, res *http.Response, timestamp time.Time) string {
+func (v *TuiApp) AddResponse(id uint64, res *fmthttp.Response, timestamp time.Time) (string, error) {
 	e, ok := v.lut[id]
 	if !ok {
-		// FIXME: panic?
-		return ""
+		panic(fmt.Sprintf("failed to find exchange with ID %v", id))
 	}
+	var rErr error
 	resBodyFile := ""
 	if res.Body != nil && res.Body != http.NoBody {
 		defer res.Body.Close()
-		ext := extensionByType(res.Header.Get("Content-Type"), ".dat")
+		ext := extensionByType(res.Headers.Get("Content-Type"), ".dat")
 		resBodyFile = filepath.Join(v.tmpDir, fmt.Sprintf("res_%v%s", id, ext))
 		f, err := os.Create(resBodyFile)
 		if err != nil {
 			resBodyFile = ""
+			rErr = err
 		} else {
 			defer f.Close()
 			_, err = io.Copy(f, res.Body)
 			if err != nil {
 				resBodyFile = ""
+				rErr = err
 			}
 		}
 	}
 
-	e.resHeaders = fmthttp.CopyToHeaders(res.Header)
+	e.resHeaders = res.Headers
 	e.resBodyFile = resBodyFile
-	var statusText string
-	if len(res.Status) > 4 {
-		statusText = res.Status[4:]
-	}
 	go v.app.QueueUpdateDraw(func() {
-		v.timeline.AddResponse(id, timestamp, res.StatusCode, statusText)
+		v.timeline.AddResponse(id, timestamp, res.StatusCode, res.StatusText)
 	})
-	return resBodyFile
+	return resBodyFile, rErr
 }
 
 func (v *TuiApp) SetColumns(columns []string) {
