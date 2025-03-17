@@ -13,6 +13,12 @@ import (
 )
 
 // TOML structs
+type rawUI struct {
+	Horizontal      bool     `toml:"horizontal"`
+	GrowTimeline    int      `toml:"grow_timeline"`
+	GrowExchange    int      `toml:"grow_exchange"`
+	TimelineColumns []string `toml:"timeline_columns"`
+}
 
 type rawRequest struct {
 	Headers    map[string]string `toml:"headers"`
@@ -33,11 +39,19 @@ type rawServer struct {
 }
 
 type rawConfig struct {
+	UI        rawUI       `toml:"ui"`
 	Directory string      `toml:"directory"`
 	Servers   []rawServer `toml:"server"`
 }
 
 // sanitized structs
+
+type UI struct {
+	Horizontal      bool
+	GrowTimeline    int
+	GrowExchange    int
+	TimelineColumns []string
+}
 
 type Overwrite struct {
 	Method string
@@ -65,6 +79,7 @@ type Server struct {
 }
 
 type Config struct {
+	UI        UI
 	Directory string
 	Servers   []Server
 }
@@ -181,9 +196,29 @@ func parse(tomlReader io.Reader) (*Config, error) {
 		servers = append(servers, *s)
 	}
 
+	uiTimelineColumns := []string{"ID",
+		"start",
+		"method",
+		"host",
+		"request target",
+		"end",
+		"duration",
+		"status_code",
+		"status_Text",
+	}
+	if len(raw.UI.TimelineColumns) > 0 {
+		uiTimelineColumns = raw.UI.TimelineColumns
+	}
+
 	return &Config{
 		Directory: directory,
 		Servers:   servers,
+		UI: UI{
+			Horizontal:      raw.UI.Horizontal,
+			GrowTimeline:    raw.UI.GrowTimeline,
+			GrowExchange:    raw.UI.GrowExchange,
+			TimelineColumns: uiTimelineColumns,
+		},
 	}, nil
 }
 

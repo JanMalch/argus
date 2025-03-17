@@ -2,6 +2,15 @@
 
 directory = ".argus" # default
 
+[ui]
+# Vertical layout: exchange view underneath timeline
+horizontal = false
+# Flexbox layout: exchange view is 1.5 times larger than the timeline
+grow_timeline = 2
+grow_exchange = 3
+# casing and space/underscore doesn't matter. Unknown values are ignored.
+timeline_columns = ["ID", "start", "method", "host", "request target", "end", "duration", "status_code", "status_Text"]
+
 [[server]]
 upstream = "https://jsonplaceholder.typicode.com"
 port = 3000 # for localhost
