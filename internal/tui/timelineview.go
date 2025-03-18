@@ -27,6 +27,7 @@ var (
 		"status_text",
 		"end",
 		"duration",
+		"response_content",
 	}
 
 	methodDefaultStyle = tcell.StyleDefault.Bold(true)
@@ -52,16 +53,17 @@ type timelineData struct {
 }
 
 type timelineEntry struct {
-	id            uint64
-	start         time.Time
-	fmtStart      string
-	method        string
-	host          string
-	requestTarget string
-	statusCode    int
-	statusText    string
-	fmtEnd        string
-	fmtDuration   string
+	id             uint64
+	start          time.Time
+	fmtStart       string
+	method         string
+	host           string
+	requestTarget  string
+	statusCode     int
+	statusText     string
+	fmtEnd         string
+	fmtDuration    string
+	resContentType string
 }
 
 func pad(s string) string {
@@ -95,6 +97,8 @@ func (d *timelineData) GetCell(row, column int) *tview.TableCell {
 			text = "End"
 		case "duration":
 			text = "Duration"
+		case "response_content":
+			text = "Response Content"
 		}
 		return tview.NewTableCell(pad(text)).SetStyle(headStyle).SetSelectable(false)
 	}
@@ -163,6 +167,8 @@ func (d *timelineData) GetCell(row, column int) *tview.TableCell {
 		text = e.fmtEnd
 	case "duration":
 		text = e.fmtDuration
+	case "response_content":
+		text = e.resContentType
 	}
 	cell := tview.NewTableCell(pad(text)).SetSelectable(text != "")
 	if style != tcell.StyleDefault {
@@ -195,16 +201,6 @@ func toKnownColumns(columns []string) []string {
 	return res
 }
 
-// Known column names:
-// - id
-// - start
-// - method
-// - host
-// - requestTarget
-// - statusCode
-// - statusText
-// - end
-// - duration
 func NewTimelineView(columns []string) *TimelineView {
 	table := tview.NewTable().SetFixed(2, 1).SetSelectable(true, true)
 	table.SetDrawFunc(func(screen tcell.Screen, x, y, width, height int) (int, int, int, int) {
@@ -227,16 +223,6 @@ func NewTimelineView(columns []string) *TimelineView {
 	}
 }
 
-// Known column names:
-// - id
-// - start
-// - method
-// - host
-// - requestTarget
-// - statusCode
-// - statusText
-// - end
-// - duration
 func (v *TimelineView) SetColumns(columns []string) {
 	v.data.columns = toKnownColumns(columns)
 }
@@ -268,6 +254,7 @@ func (v *TimelineView) AddResponse(
 	end time.Time,
 	statusCode int,
 	statusText string,
+	contentType string,
 ) {
 	e, ok := v.data.lut[id]
 	if !ok {
@@ -281,6 +268,12 @@ func (v *TimelineView) AddResponse(
 	} else {
 		e.statusText = statusText
 	}
+	// only keep part before ;
+	resContentType := contentType
+	if idx := strings.IndexByte(contentType, ';'); idx >= 0 {
+		resContentType = contentType[:idx]
+	}
+	e.resContentType = resContentType
 }
 
 func (v *TimelineView) SetSelectedEntryChangedFunc(handler func(entry *timelineEntry)) {

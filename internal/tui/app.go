@@ -169,7 +169,7 @@ func (v *TuiApp) AddResponse(id uint64, res *fmthttp.Response, timestamp time.Ti
 	e.resHeaders = res.Headers
 	e.resBodyFile = resBodyFile
 	go v.app.QueueUpdateDraw(func() {
-		v.timeline.AddResponse(id, timestamp, res.StatusCode, res.StatusText)
+		v.timeline.AddResponse(id, timestamp, res.StatusCode, res.StatusText, res.Headers.Get("Content-Type"))
 	})
 	return resBodyFile, rErr
 }

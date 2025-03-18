@@ -20,6 +20,7 @@ func main() {
 		"duration",
 		"status_code",
 		"status_Text",
+		"response content",
 	}
 	app := tview.NewApplication()
 	v := tui.NewTimelineView(defaultColumns)
@@ -42,7 +43,7 @@ func main() {
 	go func() {
 		time.Sleep(3 * time.Second)
 		app.QueueUpdateDraw(func() {
-			v.AddResponse(1, time.Now(), 304, "")
+			v.AddResponse(1, time.Now(), 304, "", "application/json; charset=utf-8")
 		})
 	}()
 

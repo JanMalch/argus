@@ -9,7 +9,7 @@ horizontal = false
 grow_timeline = 2
 grow_exchange = 3
 # casing and space/underscore doesn't matter. Unknown values are ignored.
-timeline_columns = ["ID", "start", "method", "host", "request target", "end", "duration", "status_code", "status_Text"]
+timeline_columns = ["ID", "start", "method", "host", "request target", "end", "duration", "status_code", "status_Text", "response content"]
 
 [[server]]
 upstream = "https://jsonplaceholder.typicode.com"
