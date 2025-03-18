@@ -215,8 +215,8 @@ func parse(tomlReader io.Reader) (*Config, error) {
 		Servers:   servers,
 		UI: UI{
 			Horizontal:      raw.UI.Horizontal,
-			GrowTimeline:    raw.UI.GrowTimeline,
-			GrowExchange:    raw.UI.GrowExchange,
+			GrowTimeline:    max(1, raw.UI.GrowTimeline),
+			GrowExchange:    max(1, raw.UI.GrowExchange),
 			TimelineColumns: uiTimelineColumns,
 		},
 	}, nil
