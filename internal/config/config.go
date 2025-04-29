@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -229,7 +230,18 @@ func parseFile(path string) (Config, error) {
 		return Config{}, err
 	}
 	defer file.Close()
-	return parse(file)
+	c, err := parse(file)
+	if err != nil {
+		return Config{}, err
+	}
+	if !filepath.IsAbs(c.Directory) {
+		abs, err := filepath.Abs(filepath.Join(filepath.Dir(path), c.Directory))
+		if err != nil {
+			return Config{}, err
+		}
+		c.Directory = abs
+	}
+	return c, nil
 }
 
 func toStatusCode(value int64) (int, error) {

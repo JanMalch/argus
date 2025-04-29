@@ -6,7 +6,6 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/alecthomas/kong"
 	"github.com/janmalch/argus/internal/config"
@@ -25,8 +24,7 @@ func run(configFile string) error {
 	defer provider.Close()
 
 	conf := provider.Get()
-	directory := filepath.Join(filepath.Dir(configFile), conf.Directory)
-	tuiApp := tui.NewApp(directory, conf.UI)
+	tuiApp := tui.NewApp(conf.Directory, conf.UI)
 	provider.SetListener(func(c config.Config) {
 		tuiApp.SetUI(c.UI)
 	})
