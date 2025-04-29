@@ -13,10 +13,14 @@ import (
 	"github.com/janmalch/argus/internal/tui"
 )
 
-func run(configFile string) error {
+func run(configFile string, printConfig bool) error {
 	provider, err := config.NewProvider(configFile)
 	if err != nil {
 		return err
+	}
+	if printConfig {
+		config.DebugPrint(provider.Get(), provider.Path)
+		return nil
 	}
 	if err = provider.Watch(); err != nil {
 		return err
@@ -62,8 +66,9 @@ func run(configFile string) error {
 const VERSION = "0.4.0"
 
 var cli struct {
-	ConfigFile string           `arg:"" default:"argus.toml" type:"path" help:"Path to the configuration TOML file. Default is \"argus.toml\""`
-	Version    kong.VersionFlag `short:"v" name:"version" help:"Print version information and quit"`
+	ConfigFile  string           `arg:"" default:"argus.toml" type:"path" help:"Path to the configuration TOML file. Default is \"argus.toml\""`
+	PrintConfig bool             `help:"Print the loaded config with debug information and quit"`
+	Version     kong.VersionFlag `short:"v" name:"version" help:"Print version information and quit"`
 }
 
 const helpExtraText = `A convenient proxy server for developers.
@@ -79,7 +84,7 @@ func main() {
 		},
 	)
 
-	if err := run(cli.ConfigFile); err != nil {
+	if err := run(cli.ConfigFile, cli.PrintConfig); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
