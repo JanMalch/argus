@@ -30,6 +30,7 @@ require (
 )
 
 require (
+	github.com/alecthomas/kong v1.10.0 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect

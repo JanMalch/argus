@@ -7,16 +7,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"slices"
-	"strings"
 
+	"github.com/alecthomas/kong"
 	"github.com/janmalch/argus/internal/config"
 	"github.com/janmalch/argus/internal/handler"
 	"github.com/janmalch/argus/internal/tui"
 )
 
-func run(args []string) error {
-	configFile := consumeArgs(args)
+func run(configFile string) error {
 	if watcher, err := config.Watch(configFile); err != nil {
 		return err
 	} else {
@@ -62,44 +60,25 @@ func run(args []string) error {
 
 const VERSION = "0.4.0"
 
-const helpText = `
-Usage: argus [<config>]
-
-A convenient proxy server for developers.
-
-Arguments:
-  [<config>]    Path to the TOML configuration file. Default: argus.toml
-  
-Flags:
-  -h, --help       Show this help.
-  -v, --version    Print Argus version.
-  
-Example configuration file: https://github.com/JanMalch/argus/blob/main/argus.toml`
-
-func consumeArgs(args []string) string {
-	if slices.Contains(args, "-v") || slices.Contains(args, "--version") {
-		fmt.Println("Argus version " + VERSION)
-		os.Exit(0)
-		return ""
-	}
-
-	if slices.Contains(args, "-h") || slices.Contains(args, "--help") {
-		fmt.Println(helpText)
-		os.Exit(0)
-		return ""
-	}
-
-	config := "argus.toml"
-	for _, a := range args[1:] {
-		if a != "" && !strings.HasPrefix(a, "-") {
-			config = a
-		}
-	}
-	return config
+var cli struct {
+	ConfigFile string           `arg:"" default:"argus.toml" type:"path" help:"Path to the configuration TOML file. Default is \"argus.toml\""`
+	Version    kong.VersionFlag `short:"v" name:"version" help:"Print version information and quit"`
 }
 
+const helpExtraText = `A convenient proxy server for developers.
+
+Example configuration file: https://github.com/JanMalch/argus/blob/main/argus.toml`
+
 func main() {
-	if err := run(os.Args); err != nil {
+	kong.Parse(&cli,
+		kong.Name("argus"),
+		kong.Description(helpExtraText),
+		kong.Vars{
+			"version": VERSION,
+		},
+	)
+
+	if err := run(cli.ConfigFile); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
