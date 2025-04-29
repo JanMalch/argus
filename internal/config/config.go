@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 
@@ -170,14 +171,14 @@ func parseRawServer(raw rawServer, fallbackPort int) (*Server, error) {
 	}, nil
 }
 
-func parse(tomlReader io.Reader) (*Config, error) {
+func parse(tomlReader io.Reader) (Config, error) {
 	var raw rawConfig
 	_, err := toml.NewDecoder(tomlReader).Decode(&raw)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 	if len(raw.Servers) == 0 {
-		return nil, ErrNoServers
+		return Config{}, ErrNoServers
 	}
 
 	directory := raw.Directory
@@ -190,7 +191,7 @@ func parse(tomlReader io.Reader) (*Config, error) {
 	for _, rs := range raw.Servers {
 		s, err := parseRawServer(rs, nextPort)
 		if err != nil {
-			return nil, err
+			return Config{}, err
 		}
 		nextPort = s.Port + 1
 		servers = append(servers, *s)
@@ -210,7 +211,7 @@ func parse(tomlReader io.Reader) (*Config, error) {
 		uiTimelineColumns = raw.UI.TimelineColumns
 	}
 
-	return &Config{
+	return Config{
 		Directory: directory,
 		Servers:   servers,
 		UI: UI{
@@ -220,6 +221,15 @@ func parse(tomlReader io.Reader) (*Config, error) {
 			TimelineColumns: uiTimelineColumns,
 		},
 	}, nil
+}
+
+func parseFile(path string) (Config, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return Config{}, err
+	}
+	defer file.Close()
+	return parse(file)
 }
 
 func toStatusCode(value int64) (int, error) {

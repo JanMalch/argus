@@ -109,6 +109,6 @@ upstream = "https://postman-echo.com"
 				},
 			},
 		}
-		assert.EqualValues(t, expected, *conf)
+		assert.EqualValues(t, expected, conf)
 	}
 }

@@ -15,16 +15,19 @@ import (
 )
 
 func run(configFile string) error {
-	if watcher, err := config.Watch(configFile); err != nil {
+	provider, err := config.NewProvider(configFile)
+	if err != nil {
 		return err
-	} else {
-		defer watcher.Close()
 	}
+	if err = provider.Watch(); err != nil {
+		return err
+	}
+	defer provider.Close()
 
-	conf := config.GetConfig()
+	conf := provider.Get()
 	directory := filepath.Join(filepath.Dir(configFile), conf.Directory)
 	tuiApp := tui.NewApp(directory, conf.UI)
-	config.SetListener(func(c config.Config) {
+	provider.SetListener(func(c config.Config) {
 		tuiApp.SetUI(c.UI)
 	})
 
@@ -37,7 +40,7 @@ func run(configFile string) error {
 		// usedPort := listener.Addr().(*net.TCPAddr).Port
 		srv := handler.NewServer(tuiApp, func() config.Server {
 			// NOTE: important to always get a fresh config
-			return config.GetConfig().Servers[i]
+			return provider.Get().Servers[i]
 		})
 		listeners = append(listeners, listener)
 		go func() {
