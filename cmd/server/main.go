@@ -63,7 +63,7 @@ func run(configFile string, printConfig bool) error {
 	return errors.Join(errs...)
 }
 
-const VERSION = "0.4.0"
+const VERSION = "0.5.0"
 
 var cli struct {
 	ConfigFile  string           `arg:"" default:"argus.toml" type:"path" help:"Path to the configuration TOML file. Default is \"argus.toml\""`

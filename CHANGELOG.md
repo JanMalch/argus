@@ -1,3 +1,15 @@
+## [0.5.0](https://github.com/JanMalch/argus/tree/v0.5.0) - April 29, 2025
+
+**Full Changelog:** [`v0.4.0...v0.5.0`](https://github.com/JanMalch/argus/compare/v0.4.0...v0.5.0)
+
+| type | description | commit |
+|---|---|---|
+| feat | add option to debug config | [`6ada14be`](https://github.com/JanMalch/argus/commit/6ada14bea7a1eb896b8970eb7ec4f95992ba0ff7) |
+| feat | add simplified response content type to timeline | [`561aca0d`](https://github.com/JanMalch/argus/commit/561aca0dfdd84153665c85e3490d6b12ba5c1704) |
+| fix | prevent invalid flex-grow values | [`3dcc1c23`](https://github.com/JanMalch/argus/commit/3dcc1c232b180aa12130d86713165ce5e8af604e) |
+
+
+
 ## [0.4.0](https://github.com/JanMalch/argus/tree/v0.4.0) - March 17, 2025
 
 **Full Changelog:** [`v0.3.0...v0.4.0`](https://github.com/JanMalch/argus/compare/v0.3.0...v0.4.0)
