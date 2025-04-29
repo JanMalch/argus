@@ -241,6 +241,28 @@ func parseFile(path string) (Config, error) {
 		}
 		c.Directory = abs
 	}
+
+	servers := make([]Server, 0)
+	for _, s := range c.Servers {
+		res := s.Response
+		overwrites := make([]Overwrite, 0)
+		for _, o := range s.Response.Overwrites {
+			if o.File != "" {
+				if !filepath.IsAbs(o.File) {
+					f, err := filepath.Abs(filepath.Join(c.Directory, o.File))
+					if err != nil {
+						return Config{}, err
+					}
+					o.File = f
+				}
+			}
+			overwrites = append(overwrites, o)
+		}
+		res.Overwrites = overwrites
+		s.Response = res
+		servers = append(servers, s)
+	}
+	c.Servers = servers
 	return c, nil
 }
 

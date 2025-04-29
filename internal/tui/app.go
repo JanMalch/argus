@@ -97,9 +97,8 @@ func (a *TuiApp) Run() error {
 }
 
 func (v *TuiApp) ReadFile(file string) (io.ReadCloser, string, error) {
-	f := filepath.Join(v.directory, file)
-	contentType := contentTypeOf(f)
-	r, err := os.Open(f)
+	contentType := contentTypeOf(file)
+	r, err := os.Open(file)
 	return r, contentType, err
 }
 
