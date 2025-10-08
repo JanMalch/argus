@@ -6,12 +6,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/BurntSushi/toml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestParseValidConfig(t *testing.T) {
-	toml := strings.NewReader(`
+	tomlReader := strings.NewReader(`
 directory = ".argus"
 
 [[server]]
@@ -45,10 +46,22 @@ upstream = "https://postman-echo.com"
 	echo, err := url.Parse("https://postman-echo.com")
 	require.NoError(t, err)
 
-	conf, err := parse(toml)
+	var raw rawConfig
+	_, err = toml.NewDecoder(tomlReader).Decode(&raw)
+	if !assert.NoError(t, err) {
+		return
+	}
+	conf, err := sanitize(raw)
 	if assert.NoError(t, err) {
 		expected := Config{
 			Directory: ".argus",
+			UI: UI{
+				GrowTimeline: 1,
+				GrowExchange: 1,
+				TimelineColumns: []string{
+					"ID", "start", "method", "host", "request target", "end", "duration", "status_code", "status_Text",
+				},
+			},
 			Servers: []Server{
 				{
 					Upstream: placeholder,

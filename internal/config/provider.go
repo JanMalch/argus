@@ -42,6 +42,17 @@ func resolvePath(path string) (string, error) {
 }
 
 func NewProvider(path string) (*Provider, error) {
+	if path != "" {
+		return tryNewProvider(path)
+	}
+	p, err := tryNewProvider("argus.toml")
+	if err == nil {
+		return p, nil
+	}
+	return tryNewProvider("argus.json")
+}
+
+func tryNewProvider(path string) (*Provider, error) {
 	p, err := resolvePath(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve path: %w", err)

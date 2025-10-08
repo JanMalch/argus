@@ -66,7 +66,7 @@ func run(configFile string, printConfig bool) error {
 const VERSION = "0.5.0"
 
 var cli struct {
-	ConfigFile  string           `arg:"" default:"argus.toml" type:"path" help:"Path to the configuration TOML file. Default is \"argus.toml\""`
+	ConfigFile  string           `arg:"" default:"" type:"path" help:"Path to the configuration file. Looks for \"argus.toml\" and \"argus.json\" if empty."`
 	PrintConfig bool             `help:"Print the loaded config with debug information and quit"`
 	Version     kong.VersionFlag `short:"v" name:"version" help:"Print version information and quit"`
 }

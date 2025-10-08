@@ -1,9 +1,9 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,34 +16,34 @@ import (
 
 // TOML structs
 type rawUI struct {
-	Horizontal      bool     `toml:"horizontal"`
-	GrowTimeline    int      `toml:"grow_timeline"`
-	GrowExchange    int      `toml:"grow_exchange"`
-	TimelineColumns []string `toml:"timeline_columns"`
+	Horizontal      bool     `toml:"horizontal" json:"horizontal"`
+	GrowTimeline    int      `toml:"grow_timeline" json:"grow_timeline"`
+	GrowExchange    int      `toml:"grow_exchange" json:"grow_exchange"`
+	TimelineColumns []string `toml:"timeline_columns" json:"timeline_columns"`
 }
 
 type rawRequest struct {
-	Headers    map[string]string `toml:"headers"`
-	Parameters map[string]string `toml:"parameters"`
+	Headers    map[string]string `toml:"headers" json:"headers"`
+	Parameters map[string]string `toml:"parameters" json:"parameters"`
 }
 
 type rawResponse struct {
-	Headers map[string]string `toml:"headers"`
+	Headers map[string]string `toml:"headers" json:"headers"`
 	// any can be string for file, or int for status code
-	Overwrites map[string]any `toml:"overwrites"`
+	Overwrites map[string]any `toml:"overwrites" json:"overwrites"`
 }
 
 type rawServer struct {
-	Upstream string      `toml:"upstream"`
-	Port     *int        `toml:"port"`
-	Request  rawRequest  `toml:"request"`
-	Response rawResponse `toml:"response"`
+	Upstream string      `toml:"upstream" json:"upstream"`
+	Port     *int        `toml:"port" json:"port"`
+	Request  rawRequest  `toml:"request" json:"request"`
+	Response rawResponse `toml:"response" json:"response"`
 }
 
 type rawConfig struct {
-	UI        rawUI       `toml:"ui"`
-	Directory string      `toml:"directory"`
-	Servers   []rawServer `toml:"server"`
+	UI        rawUI       `toml:"ui" json:"ui"`
+	Directory string      `toml:"directory" json:"directory"`
+	Servers   []rawServer `toml:"server" json:"server"`
 }
 
 // sanitized structs
@@ -94,6 +94,7 @@ var (
 	ErrNoServers         = errors.New("no servers configured")
 	ErrNoFirstServerPort = errors.New("at least the first server must have a port greater than zero")
 	ErrNoServerPort      = errors.New("server port must be greater than 0")
+	ErrUnknownFileType   = errors.New("unknown configuration file type")
 )
 
 func parseRawServer(raw rawServer, fallbackPort int) (*Server, error) {
@@ -172,12 +173,7 @@ func parseRawServer(raw rawServer, fallbackPort int) (*Server, error) {
 	}, nil
 }
 
-func parse(tomlReader io.Reader) (Config, error) {
-	var raw rawConfig
-	_, err := toml.NewDecoder(tomlReader).Decode(&raw)
-	if err != nil {
-		return Config{}, err
-	}
+func sanitize(raw rawConfig) (Config, error) {
 	if len(raw.Servers) == 0 {
 		return Config{}, ErrNoServers
 	}
@@ -224,16 +220,56 @@ func parse(tomlReader io.Reader) (Config, error) {
 	}, nil
 }
 
-func parseFile(path string) (Config, error) {
-	file, err := os.Open(path)
+func parseTomlFile(tomlFile string) (rawConfig, error) {
+	file, err := os.Open(tomlFile)
 	if err != nil {
-		return Config{}, err
+		return rawConfig{}, err
 	}
 	defer file.Close()
-	c, err := parse(file)
+
+	var raw rawConfig
+	_, err = toml.NewDecoder(file).Decode(&raw)
+	return raw, err
+}
+
+func parseJsonFile(jsonFile string) (rawConfig, error) {
+	b, err := os.ReadFile(jsonFile)
+	if err != nil {
+		return rawConfig{}, err
+	}
+	lines := strings.Split(string(b), "\n")
+	noCommentsLines := make([]string, 0)
+	for _, l := range lines {
+		// epic JSON comment support!
+		if !strings.HasPrefix(strings.TrimSpace(l), "//") {
+			noCommentsLines = append(noCommentsLines, l)
+		}
+	}
+
+	var raw rawConfig
+	err = json.Unmarshal([]byte(strings.Join(noCommentsLines, "\n")), &raw)
+	return raw, err
+}
+
+func parseFile(path string) (Config, error) {
+	var raw rawConfig
+	var err error
+	if strings.HasSuffix(path, ".toml") {
+		raw, err = parseTomlFile(path)
+	} else if strings.HasSuffix(path, ".json") || strings.HasSuffix(path, ".json5") || strings.HasSuffix(path, ".jsonc") {
+		raw, err = parseJsonFile(path)
+	} else {
+		return Config{}, ErrUnknownFileType
+	}
 	if err != nil {
 		return Config{}, err
 	}
+
+	c, err := sanitize(raw)
+	if err != nil {
+		return Config{}, err
+	}
+
 	if !filepath.IsAbs(c.Directory) {
 		abs, err := filepath.Abs(filepath.Join(filepath.Dir(path), c.Directory))
 		if err != nil {

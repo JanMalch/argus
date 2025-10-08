@@ -1,0 +1,10 @@
+{
+  "directory": ".argus",
+  "server": [
+    // basic support comments, when they are an entire line
+    {
+      "upstream": "https://github.com",
+      "port": 4200
+    }
+  ]
+}
